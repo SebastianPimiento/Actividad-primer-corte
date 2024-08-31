@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Taller proyecto final</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.16.8/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <style>
+        body {
+            font-family: Arial;
+            margin: 0;
+            padding: 0;
+            background-color: #FF4D00;
+            color: #000000;
+        }
+
+        header {
+            background-color: #6a1b9a;
+            color: white;
+            text-align: center;
+            padding: 2rem 0;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        nav {
+            background-color: #8e24aa;
+            overflow: hidden;
+        }
+
+        nav ul {
+            list-style-type: none;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+        }
+
+        nav ul li {
+            margin: 0;
+        }
+
+        nav ul li a {
+            display: block;
+            color: white;
+            text-align: center;
+            padding: 14px 20px;
+            text-decoration: none;
+            transition: background-color 0.3s;
+        }
+
+        nav ul li a:hover {
+            background-color: #ba68c8;
+        }
+
+        main {
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .form-section, .search-section, .file-upload-section, .export-section {
+            width: 100%;
+            max-width: 800px;
+            margin-bottom: 20px;
+            text-align: left;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .form-section h2, .search-section h2, .file-upload-section h2 {
+            color: #6a1b9a;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+        }
+
+        form label {
+            margin: 5px 0;
+        }
+
+        form input[type="text"], form input[type="email"], form input[type="date"], form input[type="file"] {
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            transition: border-color 0.3s;
+        }
+
+        form input[type="text"]:focus, form input[type="email"]:focus, form input[type="date"]:focus, form input[type="file"]:focus {
+            border-color: #6a1b9a;
+        }
+
+        form input[type="button"] {
+            margin: 5px 0;
+            padding: 10px;
+            background-color: #8e24aa;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        form input[type="button"]:hover {
+            background-color: #ba68c8;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+
+        th, td {
+            padding: 10px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #6a1b9a;
+            color: white;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f0f2f5;
+        }
+
+        footer {
+            background-color: #6a1b9a;
+            color: white;
+            text-align: center;
+            padding: 1rem 0;
+            position: relative;
+            width: 100%;
+            box-shadow: 0 -4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        @media (max-width: 600px) {
+            nav ul {
+                flex-direction: column;
+            }
+
+            nav ul li a {
+                padding: 10px;
+            }
+
+            main {
+                padding: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Taller proyecto final</h1>
+    </header>
+    <nav>
+        <ul>
+            <li><a href="#">Inicio</a></li>
+            <li><a href="#">Agregar Datos</a></li>
+            <li><a href="#">Buscar Datos</a></li>
+            <li><a href="#">Cargar Excel</a></li>
+        </ul>
+    </nav>
+    <main>
+        <section class="form-section">
+            <h2>Formulario de Datos</h2>
+            <form>
+                <label for="codigo">Código:</label>
+                <input type="text" id="codigo" name="codigo"><br><br>
+                <label for="nombre">Nombre:</label>
+                <input type="text" id="nombre" name="nombre"><br><br>
+                <label for="apellido">Apellido:</label>
+                <input type="text" id="apellido" name="apellido"><br><br>
+                <label for="fecha">Fecha:</label>
+                <input type="date" id="fecha" name="fecha"><br><br>
+                <label for="correo">Correo:</label>
+                <input type="email" id="correo" name="correo"><br><br>
+                <input type="button" value="Agregar" onclick="agregarDatos()">
+                <input type="button" value="Actualizar" onclick="actualizarDatos()">
+                <input type="button" value="Eliminar" onclick="eliminarDatos()">
+                <input type="button" value="Limpiar" onclick="limpiar()">
+            </form>
+        </section>
+        <section id="tablaDatos" class="tabla-datos"></section>
+        <section class="search-section">
+            <h2>Buscar Datos</h2>
+            <label for="buscarCodigo">Buscar Código:</label>
+            <input type="text" id="buscarCodigo">
+            <input type="button" value="Buscar" onclick="buscarCodigo()">
+            <div id="resultadoBusqueda"></div>
+        </section>
+        <section class="file-upload-section">
+            <h2>Cargar Datos desde Excel</h2>
+            <label for="cargarArchivo">Cargar Excel:</label>
+            <input type="file" id="cargarArchivo" accept=".xlsx">
+            <input type="button" value="Cargar Datos" onclick="cargarDatosDesdeExcel()">
+        </section>
+        <section class="export-section">
+            <input type="button" value="Exportar a Excel" onclick="exportToExcel()" id="exportButton">
+        </section>
+    </main>
+    <footer>
+        <p>&copy; 2024 Gestión de Datos. Todos los derechos reservados.</p>
+    </footer>
+    <script>
+        let datos = [];
+
+        function validarCorreo(correo) {
+            const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return regex.test(correo);
+        }
+
+        function agregarDatos() {
+            const codigo = document.getElementById("codigo").value;
+            const nombre = document.getElementById("nombre").value;
+            const apellido = document.getElementById("apellido").value;
+            const fecha = document.getElementById("fecha").value;
+            const correo = document.getElementById("correo").value;
+
+            if (codigo && nombre && apellido && fecha && correo) {
+                if (!validarCorreo(correo)) {
+                    alert("Por favor, ingrese un correo electrónico válido.");
+                    return;
+                }
+                datos.push({ Código: codigo, Nombre: nombre, Apellido: apellido, Fecha: fecha, Correo: correo });
+                alert("Los datos fueron agregados de forma correcta");
+                limpiarFormulario();
+                mostrarDatos();
+            } else {
+                alert("Todos los campos son obligatorios");
+            }
+        }
+
+        function limpiar() {
+            limpiarFormulario();
+        }
+
+        function mostrarDatos() {
+            const tabla = document.getElementById("tablaDatos");
+            tabla.innerHTML = "";
+
+            if (datos.length > 0) {
+                const table = document.createElement("table");
+                const headerRow = table.insertRow(0);
+
+                for (const key in datos[0]) {
+                    const th = document.createElement("th");
+                    th.innerHTML = key;
+                    headerRow.appendChild(th);
+                }
+
+                for (let i = 0; i < datos.length; i++) {
+                    const row = table.insertRow(i + 1);
+                    for (const key in datos[i]) {
+                        const cell = row.insertCell();
+                        cell.innerHTML = datos[i][key];
+                    }
+                }
+
+                tabla.appendChild(table);
+                document.getElementById("exportButton").style.display = "block";
+            } else {
+                document.getElementById("exportButton").style.display = "none";
+            }
+        }
+
+        function buscarCodigo() {
+            const codigoBuscado = document.getElementById("buscarCodigo").value;
+            const resultadoBusqueda = document.getElementById("resultadoBusqueda");
+            resultadoBusqueda.innerHTML = "";
+
+            if (codigoBuscado) {
+                const resultados = datos.filter((item) => item["Código"] === codigoBuscado);
+
+                if (resultados.length > 0) {
+                    const table = document.createElement("table");
+                    const headerRow = table.insertRow(0);
+
+                    for (const key in resultados[0]) {
+                        const th = document.createElement("th");
+                        th.innerHTML = key;
+                        headerRow.appendChild(th);
+                    }
+
+                    resultados.forEach((item, index) => {
+                        const row = table.insertRow(index + 1);
+                        for (const key in item) {
+                            const cell = row.insertCell();
+                            cell.innerHTML = item[key];
+                        }
+                    });
+
+                    resultadoBusqueda.appendChild(table);
+
+                    // Mostrar los datos encontrados en las cajas de texto del formulario
+                    document.getElementById("codigo").value = resultados[0]["Código"];
+                    document.getElementById("nombre").value = resultados[0]["Nombre"];
+                    document.getElementById("apellido").value = resultados[0]["Apellido"];
+                    document.getElementById("fecha").value = resultados[0]["Fecha"];
+                    document.getElementById("correo").value = resultados[0]["Correo"];
+                } else {
+                    alert("Código no encontrado.");
+                }
+            } else {
+                alert("Ingrese un código para buscar.");
+            }
+        }
+
+        function actualizarDatos() {
+            const codigo = document.getElementById("codigo").value;
+            const nombre = document.getElementById("nombre").value;
+            const apellido = document.getElementById("apellido").value;
+            const fecha = document.getElementById("fecha").value;
+            const correo = document.getElementById("correo").value;
+
+            if (codigo && nombre && apellido && fecha && correo) {
+                if (!validarCorreo(correo)) {
+                    alert("Por favor, ingrese un correo electrónico válido.");
+                    return;
+                }
+                const indice = datos.findIndex((item) => item["Código"] === codigo);
+
+                if (indice !== -1) {
+                    datos[indice] = { Código: codigo, Nombre: nombre, Apellido: apellido, Fecha: fecha, Correo: correo };
+                    alert("Datos actualizados correctamente");
+                    mostrarDatos();
+                    limpiarFormulario();
+                } else {
+                    alert("Código no encontrado.");
+                }
+            } else {
+                alert("Todos los campos son obligatorios");
+            }
+        }
+
+        function eliminarDatos() {
+            const codigo = document.getElementById("codigo").value;
+
+            if (codigo) {
+                const indice = datos.findIndex((item) => item["Código"] === codigo);
+
+                if (indice !== -1) {
+                    datos.splice(indice, 1);
+                    alert("Datos eliminados correctamente");
+                    mostrarDatos();
+                    limpiarFormulario();
+                } else {
+                    alert("Código no encontrado.");
+                }
+            } else {
+                alert("Ingrese un código para eliminar.");
+            }
+        }
+
+        function limpiarFormulario() {
+            document.getElementById("codigo").value = "";
+            document.getElementById("nombre").value = "";
+            document.getElementById("apellido").value = "";
+            document.getElementById("fecha").value = "";
+            document.getElementById("correo").value = "";
+        }
+
+        function cargarDatosDesdeExcel() {
+            const fileInput = document.getElementById("cargarArchivo");
+            const file = fileInput.files[0];
+
+            if (file) {
+                const reader = new FileReader();
+
+                reader.onload = function (e) {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: "array" });
+                    const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+                    const jsonData = XLSX.utils.sheet_to_json(worksheet);
+
+                    datos = jsonData;
+                    mostrarDatos();
+                };
+
+                reader.readAsArrayBuffer(file);
+            } else {
+                alert("Seleccione un archivo para cargar.");
+            }
+        }
+
+        function exportToExcel() {
+            if (datos.length > 0) {
+                const worksheet = XLSX.utils.json_to_sheet(datos);
+                const workbook = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(workbook, worksheet, "Datos");
+
+                XLSX.writeFile(workbook, "datos.xlsx");
+            } else {
+                alert("No hay datos para exportar.");
+            }
+        }
+    </script>
+</body>
+</html>
+
+
+
+
+
